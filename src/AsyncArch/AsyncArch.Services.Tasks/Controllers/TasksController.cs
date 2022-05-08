@@ -22,11 +22,15 @@ public class TasksController : ControllerBase
         [FromQuery, Required] string title,
         [FromQuery, Required] string description,
         [FromQuery, Required] bool done,
+        [FromQuery] Guid claim_user,
         [FromServices] Context ctx,
         [FromServices] Producer producer,
         [FromServices] ILogger<TasksController> logger
     )
     {
+        if (!await ctx.Accounts.AnyAsync(a => a.UserId == claim_user))
+            return Unauthorized();
+        
         var to = await ctx.Accounts.FirstOrDefaultAsync(_ => _.UserId == assignee);
         if (to == null)
             return BadRequest("Assignee not found");
