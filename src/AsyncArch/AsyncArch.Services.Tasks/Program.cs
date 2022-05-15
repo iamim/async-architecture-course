@@ -1,9 +1,14 @@
 using AsyncArch.Services.Tasks;
 using AsyncArch.Services.Tasks.Db;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.ConfigureLogging(logging =>
+{
+    logging.ClearProviders();
+    logging.AddConsole();
+});
 
 // Add services to the container.
 builder.Services.AddControllers();

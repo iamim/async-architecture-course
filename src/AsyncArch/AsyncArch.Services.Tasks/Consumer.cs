@@ -4,6 +4,7 @@ using AsyncArch.Services.Tasks.Db;
 using Confluent.Kafka;
 using Microsoft.EntityFrameworkCore;
 using static System.Console;
+using static AsyncArch.Schema.Events.Account;
 using Account = AsyncArch.Services.Tasks.Db.Models.Account;
 using Task = System.Threading.Tasks.Task;
 
@@ -19,6 +20,7 @@ public class Consumer : BackgroundService
         _logger = logger;
     }
 
+    // TODO: consider batching (no default implementation in .NET SDK)
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         await Task.Yield();
@@ -38,26 +40,31 @@ public class Consumer : BackgroundService
         {
             var consumeResult = consumer.Consume(stoppingToken);
             
-            WriteLine("ACCOUNT");
-            WriteLine(consumeResult.Message.Value);
+            _logger.LogTrace("Read event from Kafka: {@Event}", consumeResult.Message.Value);
             
             using var jdoc = JsonDocument.Parse(consumeResult.Message.Value);
 
             if (!jdoc.RootElement.TryGetProperty("event_name", out var je) || je.ValueKind != JsonValueKind.String)
             {
-                WriteLine("no event name");
+                // TODO: put to dead letter queue
+                _logger.LogError("No event_name property in event: {@Event}", consumeResult.Message.Value);
+                continue;
+            }
+            
+            if (!jdoc.RootElement.TryGetProperty("event_name", out var jv) || !jv.TryGetInt32(out var eventVersion))
+            {
+                // TODO: put to dead letter queue
+                _logger.LogError("No event_version property in event: {@Event}", consumeResult.Message.Value);
                 continue;
             }
             
             var eventName = je.GetString();
 
-            if (eventName == Schema.Events.Account.RoleChanged_V1.Kind) 
+            if (eventName == RoleChanged_V1.Kind && eventVersion == 1) 
             {
                 var e = 
-                    JsonSerializer.Deserialize<Schema.Events.Account.RoleChanged_V1>(consumeResult.Message.Value, Json.Options)
-                    ?? throw new Exception($"failed to deserialize {nameof(Schema.Events.Account.RoleChanged_V1)}");
-                
-                WriteLine("ACCOUNT ROLE CHANGED");
+                    JsonSerializer.Deserialize<RoleChanged_V1>(consumeResult.Message.Value, Json.Options)
+                    ?? throw new Exception($"failed to deserialize {nameof(RoleChanged_V1)}");
                 
                 using var scope = _scopeFactory.CreateScope();
                 await using var context = scope.ServiceProvider.GetRequiredService<Context>();
@@ -74,11 +81,11 @@ public class Consumer : BackgroundService
                 existing.Role = e.data.role;
                 await context.SaveChangesAsync(cancellationToken: stoppingToken);
             }
-            else if (eventName == Schema.Events.Account.Created_V1.Kind)
+            else if (eventName == Created_V1.Kind && eventVersion == 1)
             {
                 var e = 
-                    JsonSerializer.Deserialize<Schema.Events.Account.Created_V1>(consumeResult.Message.Value, Json.Options)
-                    ?? throw new Exception($"failed to deserialize {nameof(Schema.Events.Account.Created_V1)}");
+                    JsonSerializer.Deserialize<Created_V1>(consumeResult.Message.Value, Json.Options)
+                    ?? throw new Exception($"failed to deserialize {nameof(Created_V1)}");
                 
                 WriteLine("ACCOUNT CREATED");
                 
@@ -106,11 +113,11 @@ public class Consumer : BackgroundService
                 await context.Accounts.AddAsync(account, cancellationToken: stoppingToken);
                 await context.SaveChangesAsync(cancellationToken: stoppingToken);
             }
-            else if (eventName == Schema.Events.Account.Updated_V1.Kind)
+            else if (eventName == Updated_V1.Kind && eventVersion == 1)
             {
                 var e = 
-                    JsonSerializer.Deserialize<Schema.Events.Account.Updated_V1>(consumeResult.Message.Value, Json.Options)
-                    ?? throw new Exception($"failed to deserialize {nameof(Schema.Events.Account.Updated_V1)}");
+                    JsonSerializer.Deserialize<Updated_V1>(consumeResult.Message.Value, Json.Options)
+                    ?? throw new Exception($"failed to deserialize {nameof(Updated_V1)}");
                 
                 WriteLine("ACCOUNT UPDATED");
                 
@@ -130,11 +137,11 @@ public class Consumer : BackgroundService
                 existing.Role = e.data.position;
                 await context.SaveChangesAsync(cancellationToken: stoppingToken);
             }
-            else if (eventName == Schema.Events.Account.Deleted_V1.Kind)
+            else if (eventName == Deleted_V1.Kind && eventVersion == 1)
             {
                 var e = 
-                    JsonSerializer.Deserialize<Schema.Events.Account.Deleted_V1>(consumeResult.Message.Value, Json.Options)
-                    ?? throw new Exception($"failed to deserialize {nameof(Schema.Events.Account.Deleted_V1)}");
+                    JsonSerializer.Deserialize<Deleted_V1>(consumeResult.Message.Value, Json.Options)
+                    ?? throw new Exception($"failed to deserialize {nameof(Deleted_V1)}");
                 
                 WriteLine("ACCOUNT DELETED");
                 
