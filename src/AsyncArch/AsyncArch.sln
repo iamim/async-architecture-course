@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsyncArch.Services.Tasks", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsyncArch.Schema", "AsyncArch.Schema\AsyncArch.Schema.csproj", "{D5B42E76-9285-448D-A9F0-94D03C578249}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsyncArch.Services.Accounting", "AsyncArch.Services.Accounting\AsyncArch.Services.Accounting.csproj", "{C1E4A2AB-936F-4D2E-8603-F7152FE663B1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{D5B42E76-9285-448D-A9F0-94D03C578249}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D5B42E76-9285-448D-A9F0-94D03C578249}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D5B42E76-9285-448D-A9F0-94D03C578249}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C1E4A2AB-936F-4D2E-8603-F7152FE663B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C1E4A2AB-936F-4D2E-8603-F7152FE663B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C1E4A2AB-936F-4D2E-8603-F7152FE663B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C1E4A2AB-936F-4D2E-8603-F7152FE663B1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
