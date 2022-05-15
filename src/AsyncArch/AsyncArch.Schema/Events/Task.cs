@@ -131,15 +131,13 @@ public static class Task
             public Guid task_uuid { get; }
             public Guid was_assignee_uuid { get; }
             public Guid now_assignee_uuid { get; }
-            public string task_description { get; }
 
             [JsonConstructor]
-            public Data(Guid task_uuid, Guid was_assignee_uuid, Guid now_assignee_uuid, string task_description)
+            public Data(Guid task_uuid, Guid was_assignee_uuid, Guid now_assignee_uuid)
             {
                 this.task_uuid = task_uuid;
                 this.was_assignee_uuid = was_assignee_uuid;
                 this.now_assignee_uuid = now_assignee_uuid;
-                this.task_description = task_description ?? throw new ArgumentNullException(nameof(task_description));
             }
         }
     }

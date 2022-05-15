@@ -104,8 +104,7 @@ public class TasksController : ControllerBase
                 data: new Task.Reassigned_V1.Data(
                     task_uuid: undone.Uuid,
                     was_assignee_uuid: was,
-                    now_assignee_uuid: undone.Assignee,
-                    task_description: undone.Description
+                    now_assignee_uuid: undone.Assignee
                 )
             );
 
