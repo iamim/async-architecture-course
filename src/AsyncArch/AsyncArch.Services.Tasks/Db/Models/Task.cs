@@ -11,7 +11,9 @@ public class Task
     public Guid Assignee { get; set; }
 
     [Required]
-    public string Description { get; set; } = null!;
+    public string Title { get; set; } = null!;
+    
+    public string? JiraId { get; set; }
     
     public bool IsDone { get; set; }
 }

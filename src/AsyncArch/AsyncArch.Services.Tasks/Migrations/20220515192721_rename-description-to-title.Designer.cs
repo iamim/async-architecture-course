@@ -3,6 +3,7 @@ using System;
 using AsyncArch.Services.Tasks.Db;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AsyncArch.Services.Tasks.Migrations
 {
     [DbContext(typeof(Context))]
-    partial class ContextModelSnapshot : ModelSnapshot
+    [Migration("20220515192721_rename-description-to-title")]
+    partial class renamedescriptiontotitle
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -65,10 +67,6 @@ namespace AsyncArch.Services.Tasks.Migrations
                     b.Property<bool>("IsDone")
                         .HasColumnType("boolean")
                         .HasColumnName("is_done");
-
-                    b.Property<string>("JiraId")
-                        .HasColumnType("text")
-                        .HasColumnName("jira_id");
 
                     b.Property<string>("Title")
                         .IsRequired()

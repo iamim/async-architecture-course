@@ -41,7 +41,8 @@ public class TasksController : ControllerBase
         var db = new Db.Models.Task
         {
             Assignee = assignee,
-            Description = description,
+            Title = description,
+            JiraId = jira_id,
             IsDone = done
         };
 
@@ -144,7 +145,7 @@ public class TasksController : ControllerBase
 
         return new(
             Guid.Empty,
-            mine.Select(_ => new PrivateBoardResponse.Task(_.Uuid, _.Description, _.IsDone)).ToList()
+            mine.Select(_ => new PrivateBoardResponse.Task(_.Uuid, _.Title, _.IsDone)).ToList()
         );
     }
 
