@@ -1,11 +1,12 @@
 using System.Text.Json;
-using AsyncArch.Common;
+using AsyncArch.Schema;
+using AsyncArch.Schema.Events;
 using AsyncArch.Services.Tasks.Db;
 using AsyncArch.Services.Tasks.Db.Models;
-using AsyncArch.Services.Tasks.Events;
 using Confluent.Kafka;
 using Microsoft.EntityFrameworkCore;
 using static System.Console;
+using Task = System.Threading.Tasks.Task;
 
 namespace AsyncArch.Services.Tasks;
 
@@ -51,11 +52,11 @@ public class Consumer : BackgroundService
             
             var eventName = je.GetString();
 
-            if (eventName == AccountRoleChanged.Kind) 
+            if (eventName == Account.RoleChanged_V1.Kind) 
             {
                 var e = 
-                    JsonSerializer.Deserialize<AccountRoleChanged>(consumeResult.Message.Value, Json.Options)
-                    ?? throw new Exception($"failed to deserialize {nameof(AccountRoleChanged)}");
+                    JsonSerializer.Deserialize<Account.RoleChanged_V1>(consumeResult.Message.Value, Json.Options)
+                    ?? throw new Exception($"failed to deserialize {nameof(Account.RoleChanged_V1)}");
                 
                 WriteLine("ACCOUNT ROLE CHANGED");
                 
@@ -74,11 +75,11 @@ public class Consumer : BackgroundService
                 existing.Role = e.data.role;
                 await context.SaveChangesAsync(cancellationToken: stoppingToken);
             }
-            else if (eventName == AccountCreated.Kind)
+            else if (eventName == Account.Created_V1.Kind)
             {
                 var e = 
-                    JsonSerializer.Deserialize<AccountCreated>(consumeResult.Message.Value, Json.Options)
-                    ?? throw new Exception($"failed to deserialize {nameof(AccountCreated)}");
+                    JsonSerializer.Deserialize<Account.Created_V1>(consumeResult.Message.Value, Json.Options)
+                    ?? throw new Exception($"failed to deserialize {nameof(Account.Created_V1)}");
                 
                 WriteLine("ACCOUNT CREATED");
                 
@@ -106,11 +107,11 @@ public class Consumer : BackgroundService
                 await context.Accounts.AddAsync(account, cancellationToken: stoppingToken);
                 await context.SaveChangesAsync(cancellationToken: stoppingToken);
             }
-            else if (eventName == AccountUpdated.Kind)
+            else if (eventName == Account.Updated_V1.Kind)
             {
                 var e = 
-                    JsonSerializer.Deserialize<AccountUpdated>(consumeResult.Message.Value, Json.Options)
-                    ?? throw new Exception($"failed to deserialize {nameof(AccountUpdated)}");
+                    JsonSerializer.Deserialize<Account.Updated_V1>(consumeResult.Message.Value, Json.Options)
+                    ?? throw new Exception($"failed to deserialize {nameof(Account.Updated_V1)}");
                 
                 WriteLine("ACCOUNT UPDATED");
                 
@@ -130,11 +131,11 @@ public class Consumer : BackgroundService
                 existing.Role = e.data.position;
                 await context.SaveChangesAsync(cancellationToken: stoppingToken);
             }
-            else if (eventName == AccountDeleted.Kind)
+            else if (eventName == Account.Deleted_V1.Kind)
             {
                 var e = 
-                    JsonSerializer.Deserialize<AccountDeleted>(consumeResult.Message.Value, Json.Options)
-                    ?? throw new Exception($"failed to deserialize {nameof(AccountDeleted)}");
+                    JsonSerializer.Deserialize<Account.Deleted_V1>(consumeResult.Message.Value, Json.Options)
+                    ?? throw new Exception($"failed to deserialize {nameof(Account.Deleted_V1)}");
                 
                 WriteLine("ACCOUNT DELETED");
                 

@@ -5,5 +5,5 @@ public class Producer
     public const string BusinessTopic = "tasks";
     public const string DataTopic = "tasks-stream";
     
-    public async Task SendEvent(string topic, string message) { }
+    public async Task Send(string topic, params string[] messages) { }
 }

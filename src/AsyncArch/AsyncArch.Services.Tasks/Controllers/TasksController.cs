@@ -1,11 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
-using AsyncArch.Common;
+using AsyncArch.Schema;
 using AsyncArch.Services.Tasks.Db;
 using AsyncArch.Services.Tasks.Db.Models;
-using AsyncArch.Services.Tasks.Events;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Task = AsyncArch.Schema.Events.Task;
 
 namespace AsyncArch.Services.Tasks.Controllers;
 
@@ -30,7 +30,7 @@ public class TasksController : ControllerBase
     {
         if (!await ctx.Accounts.AnyAsync(a => a.UserId == claim_user))
             return Unauthorized();
-        
+
         var to = await ctx.Accounts.FirstOrDefaultAsync(_ => _.UserId == assignee);
         if (to == null)
             return BadRequest("Assignee not found");
@@ -42,27 +42,33 @@ public class TasksController : ControllerBase
             IsDone = done
         };
 
-        var e = new TaskCreated
-        {
-            task_uuid = Guid.NewGuid(),
-            assignee = assignee,
-            title = title,
-            description = description,
-            done = done
-        };
-        
-        await ctx.Tasks.AddAsync(db);
-        
-        await producer.SendEvent(
-            Producer.BusinessTopic,
-            JsonSerializer.Serialize(e, Json.Options)
+        var msg = new Task.Created_V1(
+            event_id: Guid.NewGuid().ToString(),
+            event_version: 1,
+            event_name: Task.Created_V1.Kind,
+            event_time: DateTimeOffset.Now,
+            producer: "TasksService",
+            data: new Task.Created_V1.Data(
+                task_uuid: Guid.NewGuid(),
+                assignee: assignee,
+                title: title,
+                description: description,
+                done: done
+            )
         );
-        
+
+        await ctx.Tasks.AddAsync(db);
+
+        await producer.Send(
+            Producer.BusinessTopic,
+            JsonSerializer.Serialize(msg, Json.Options)
+        );
+
         await ctx.SaveChangesAsync();
-        
-        return Ok(e.task_uuid);
+
+        return Ok(msg.data.task_uuid);
     }
-    
+
     [HttpPost("shuffle")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -77,12 +83,12 @@ public class TasksController : ControllerBase
         var user = await ctx.Accounts.FirstOrDefaultAsync(_ => _.UserId == claim_user);
         if (user is null || user.Role != "admin")
             return Unauthorized();
-        
+
         var undones = await ctx.Tasks.Where(_ => !_.IsDone).ToListAsync();
         var workers = await ctx.Accounts.Where(_ => _.Role == "worker").ToListAsync();
-        
+
         var rnd = new Random();
-        var reassignes = new List<TaskReAssigned>();
+        var reassignes = new List<Task.Reassigned_V1>();
         foreach (var undone in undones)
         {
             var pick = workers[rnd.Next(workers.Count)];
@@ -90,23 +96,30 @@ public class TasksController : ControllerBase
             var was = undone.Assignee;
             undone.Assignee = pick.UserId;
 
-            reassignes.Add(new TaskReAssigned
-            {
-                task_uuid = undone.Uuid,
-                was_assignee_uuid = was,
-                now_assignee_uuid = undone.Assignee,
-                task_description = undone.Description
-            });
-        }
-        
-        foreach (var reassign in reassignes)
-            await producer.SendEvent(
-                Producer.BusinessTopic,
-                JsonSerializer.Serialize(reassign, Json.Options)
+            var e = new Task.Reassigned_V1(
+                event_id: Guid.NewGuid().ToString(),
+                event_version: 1,
+                event_name: Task.Reassigned_V1.Kind,
+                event_time: DateTimeOffset.Now,
+                producer: "TasksService",
+                data: new Task.Reassigned_V1.Data(
+                    task_uuid: undone.Uuid,
+                    was_assignee_uuid: was,
+                    now_assignee_uuid: undone.Assignee,
+                    task_description: undone.Description
+                )
             );
-        
+
+            reassignes.Add(e);
+        }
+
+        await producer.Send(
+            Producer.BusinessTopic,
+            reassignes.Select(_ => JsonSerializer.Serialize(_, Json.Options)).ToArray()
+        );
+
         await ctx.SaveChangesAsync();
-        
+
         return Ok();
     }
 
@@ -152,20 +165,26 @@ public class TasksController : ControllerBase
 
         task.IsDone = true;
 
-        var e = new TaskCompleted
-        {
-            task_uuid = task.Uuid,
-            assignee_uuid = task.Assignee,
-            task_description = task.Description
-        };
+        var e = new Task.Completed_V1(
+            event_id: Guid.NewGuid().ToString(),
+            event_version: 1,
+            event_name: Task.Completed_V1.Kind,
+            event_time: DateTimeOffset.Now,
+            producer: "TasksService",
+            data: new Task.Completed_V1.Data(
+                task_uuid: task.Uuid,
+                assignee_uuid: task.Assignee,
+                task_description: task.Description
+            )
+        );
 
-        await producer.SendEvent(
+        await producer.Send(
             Producer.BusinessTopic,
             JsonSerializer.Serialize(e, Json.Options)
         );
-        
+
         await ctx.SaveChangesAsync();
-        
+
         return Ok();
     }
 }

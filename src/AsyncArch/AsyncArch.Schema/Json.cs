@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace AsyncArch.Common;
+namespace AsyncArch.Schema;
 
 public static class Json
 {
