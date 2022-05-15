@@ -3,7 +3,6 @@ using AsyncArch.Schema;
 using AsyncArch.Services.Tasks.Db;
 using Confluent.Kafka;
 using Microsoft.EntityFrameworkCore;
-using static System.Console;
 using static AsyncArch.Schema.Events.Account;
 using Account = AsyncArch.Services.Tasks.Db.Models.Account;
 using Task = System.Threading.Tasks.Task;
@@ -87,8 +86,6 @@ public class Consumer : BackgroundService
                     JsonSerializer.Deserialize<Created_V1>(consumeResult.Message.Value, Json.Options)
                     ?? throw new Exception($"failed to deserialize {nameof(Created_V1)}");
                 
-                WriteLine("ACCOUNT CREATED");
-                
                 using var scope = _scopeFactory.CreateScope();
                 await using var context = scope.ServiceProvider.GetRequiredService<Context>();
 
@@ -98,8 +95,9 @@ public class Consumer : BackgroundService
                         cancellationToken: stoppingToken
                     );
 
-                if (existing != null) { 
-                    WriteLine($"account already exists {existing.UserId}");
+                if (existing != null)
+                {
+                    _logger.LogInformation( "account {@PublicId} already exists, skipping creation", e.data.public_id);
                     continue;
                 }
 
@@ -118,8 +116,6 @@ public class Consumer : BackgroundService
                 var e = 
                     JsonSerializer.Deserialize<Updated_V1>(consumeResult.Message.Value, Json.Options)
                     ?? throw new Exception($"failed to deserialize {nameof(Updated_V1)}");
-                
-                WriteLine("ACCOUNT UPDATED");
                 
                 using var scope = _scopeFactory.CreateScope();
                 await using var context = scope.ServiceProvider.GetRequiredService<Context>();
@@ -142,8 +138,6 @@ public class Consumer : BackgroundService
                 var e = 
                     JsonSerializer.Deserialize<Deleted_V1>(consumeResult.Message.Value, Json.Options)
                     ?? throw new Exception($"failed to deserialize {nameof(Deleted_V1)}");
-                
-                WriteLine("ACCOUNT DELETED");
                 
                 using var scope = _scopeFactory.CreateScope();
                 await using var context = scope.ServiceProvider.GetRequiredService<Context>();
