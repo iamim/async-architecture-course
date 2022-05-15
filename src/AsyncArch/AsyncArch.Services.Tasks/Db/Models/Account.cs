@@ -1,8 +1,6 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace AsyncArch.Services.Tasks.Db.Models;
 
-public class TaskServiceAccount
+public class Account
 {
     public int Id { get; set; }
     public Guid UserId { get; set; }

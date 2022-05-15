@@ -1,11 +1,10 @@
 using System.Text.Json;
 using AsyncArch.Schema;
-using AsyncArch.Schema.Events;
 using AsyncArch.Services.Tasks.Db;
-using AsyncArch.Services.Tasks.Db.Models;
 using Confluent.Kafka;
 using Microsoft.EntityFrameworkCore;
 using static System.Console;
+using Account = AsyncArch.Services.Tasks.Db.Models.Account;
 using Task = System.Threading.Tasks.Task;
 
 namespace AsyncArch.Services.Tasks;
@@ -52,11 +51,11 @@ public class Consumer : BackgroundService
             
             var eventName = je.GetString();
 
-            if (eventName == Account.RoleChanged_V1.Kind) 
+            if (eventName == Schema.Events.Account.RoleChanged_V1.Kind) 
             {
                 var e = 
-                    JsonSerializer.Deserialize<Account.RoleChanged_V1>(consumeResult.Message.Value, Json.Options)
-                    ?? throw new Exception($"failed to deserialize {nameof(Account.RoleChanged_V1)}");
+                    JsonSerializer.Deserialize<Schema.Events.Account.RoleChanged_V1>(consumeResult.Message.Value, Json.Options)
+                    ?? throw new Exception($"failed to deserialize {nameof(Schema.Events.Account.RoleChanged_V1)}");
                 
                 WriteLine("ACCOUNT ROLE CHANGED");
                 
@@ -75,11 +74,11 @@ public class Consumer : BackgroundService
                 existing.Role = e.data.role;
                 await context.SaveChangesAsync(cancellationToken: stoppingToken);
             }
-            else if (eventName == Account.Created_V1.Kind)
+            else if (eventName == Schema.Events.Account.Created_V1.Kind)
             {
                 var e = 
-                    JsonSerializer.Deserialize<Account.Created_V1>(consumeResult.Message.Value, Json.Options)
-                    ?? throw new Exception($"failed to deserialize {nameof(Account.Created_V1)}");
+                    JsonSerializer.Deserialize<Schema.Events.Account.Created_V1>(consumeResult.Message.Value, Json.Options)
+                    ?? throw new Exception($"failed to deserialize {nameof(Schema.Events.Account.Created_V1)}");
                 
                 WriteLine("ACCOUNT CREATED");
                 
@@ -97,7 +96,7 @@ public class Consumer : BackgroundService
                     continue;
                 }
 
-                var account = new TaskServiceAccount
+                var account = new Account
                 {
                     UserId = e.data.public_id,
                     UserName = e.data.full_name,
@@ -107,11 +106,11 @@ public class Consumer : BackgroundService
                 await context.Accounts.AddAsync(account, cancellationToken: stoppingToken);
                 await context.SaveChangesAsync(cancellationToken: stoppingToken);
             }
-            else if (eventName == Account.Updated_V1.Kind)
+            else if (eventName == Schema.Events.Account.Updated_V1.Kind)
             {
                 var e = 
-                    JsonSerializer.Deserialize<Account.Updated_V1>(consumeResult.Message.Value, Json.Options)
-                    ?? throw new Exception($"failed to deserialize {nameof(Account.Updated_V1)}");
+                    JsonSerializer.Deserialize<Schema.Events.Account.Updated_V1>(consumeResult.Message.Value, Json.Options)
+                    ?? throw new Exception($"failed to deserialize {nameof(Schema.Events.Account.Updated_V1)}");
                 
                 WriteLine("ACCOUNT UPDATED");
                 
@@ -131,11 +130,11 @@ public class Consumer : BackgroundService
                 existing.Role = e.data.position;
                 await context.SaveChangesAsync(cancellationToken: stoppingToken);
             }
-            else if (eventName == Account.Deleted_V1.Kind)
+            else if (eventName == Schema.Events.Account.Deleted_V1.Kind)
             {
                 var e = 
-                    JsonSerializer.Deserialize<Account.Deleted_V1>(consumeResult.Message.Value, Json.Options)
-                    ?? throw new Exception($"failed to deserialize {nameof(Account.Deleted_V1)}");
+                    JsonSerializer.Deserialize<Schema.Events.Account.Deleted_V1>(consumeResult.Message.Value, Json.Options)
+                    ?? throw new Exception($"failed to deserialize {nameof(Schema.Events.Account.Deleted_V1)}");
                 
                 WriteLine("ACCOUNT DELETED");
                 

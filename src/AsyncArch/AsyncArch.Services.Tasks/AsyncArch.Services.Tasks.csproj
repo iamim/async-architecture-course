@@ -10,7 +10,12 @@
 
     <ItemGroup>
         <PackageReference Include="Confluent.Kafka" Version="1.8.2" />
+        <PackageReference Include="EFCore.NamingConventions" Version="6.0.0" />
         <PackageReference Include="Microsoft.AspNetCore.App" Version="2.2.8" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.5">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.4" />
         <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.3.1" />
@@ -19,5 +24,9 @@
 
     <ItemGroup>
       <ProjectReference Include="..\AsyncArch.Schema\AsyncArch.Schema.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Migrations" />
     </ItemGroup>
 </Project>

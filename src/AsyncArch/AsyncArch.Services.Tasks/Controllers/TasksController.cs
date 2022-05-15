@@ -2,7 +2,6 @@ using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 using AsyncArch.Schema;
 using AsyncArch.Services.Tasks.Db;
-using AsyncArch.Services.Tasks.Db.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Task = AsyncArch.Schema.Events.Task;
@@ -35,7 +34,7 @@ public class TasksController : ControllerBase
         if (to == null)
             return BadRequest("Assignee not found");
 
-        var db = new TaskServiceTask
+        var db = new Db.Models.Task
         {
             Assignee = assignee,
             Description = description,

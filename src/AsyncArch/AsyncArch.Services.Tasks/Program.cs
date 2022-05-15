@@ -7,7 +7,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
-builder.Services.AddDbContext<Context>(opt => opt.UseNpgsql());
+builder.Services.AddDbContext<Context>(
+    opt => 
+        opt
+            .UseNpgsql(builder.Configuration.GetConnectionString("Postgres"))
+            .UseSnakeCaseNamingConvention()
+);
+
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddHostedService<Consumer>();
