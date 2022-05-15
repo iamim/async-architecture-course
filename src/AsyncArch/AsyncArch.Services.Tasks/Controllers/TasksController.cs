@@ -171,9 +171,7 @@ public class TasksController : ControllerBase
             event_time: DateTimeOffset.Now,
             producer: "TasksService",
             data: new Task.Completed_V1.Data(
-                task_uuid: task.Uuid,
-                assignee_uuid: task.Assignee,
-                task_description: task.Description
+                task_uuid: task.Uuid
             )
         );
 
