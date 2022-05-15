@@ -1,0 +1,14 @@
+﻿{
+  "profiles": {
+    "AsyncArch.Services.Tasks": {
+      "launchBrowser": true,
+      "applicationUrl": "http://localhost:7203;https://localhost:5203",
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchUrl": "swagger",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <UserSecretsId>dotnet-AsyncArch.WorkerServerTemplate-64B0A25E-67CC-4EDF-B7E4-22C79FB96290</UserSecretsId>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Confluent.Kafka" Version="1.8.2" />
+        <PackageReference Include="Microsoft.AspNetCore.App" Version="2.2.8" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.4" />
+        <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.3.1" />
+        <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="6.3.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\AsyncArch.Common\AsyncArch.Common.csproj" />
+    </ItemGroup>
+</Project>
