@@ -78,7 +78,7 @@ public class Consumer : BackgroundService
                     throw new Exception($"account {e.data.public_id} not found to update role");
                 
                 existing.Role = e.data.role;
-                await context.SaveChangesAsync(cancellationToken: stoppingToken);
+                await context.SaveChangesAsync(CancellationToken.None);
             }
             else if (eventName == Created_V1.Kind && eventVersion == 1)
             {
@@ -109,7 +109,7 @@ public class Consumer : BackgroundService
                 };
                 
                 await context.Accounts.AddAsync(account, cancellationToken: stoppingToken);
-                await context.SaveChangesAsync(cancellationToken: stoppingToken);
+                await context.SaveChangesAsync(CancellationToken.None);
             }
             else if (eventName == Updated_V1.Kind && eventVersion == 1)
             {
@@ -131,7 +131,7 @@ public class Consumer : BackgroundService
 
                 existing.UserName = e.data.full_name;
                 existing.Role = e.data.position;
-                await context.SaveChangesAsync(cancellationToken: stoppingToken);
+                await context.SaveChangesAsync(CancellationToken.None);
             }
             else if (eventName == Deleted_V1.Kind && eventVersion == 1)
             {
@@ -152,7 +152,7 @@ public class Consumer : BackgroundService
                     throw new Exception($"account {e.data.public_id} not found to delete");
                 
                 context.Accounts.Remove(existing);
-                await context.SaveChangesAsync(cancellationToken: stoppingToken);
+                await context.SaveChangesAsync(CancellationToken.None);
             }
         }
 
