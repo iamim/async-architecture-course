@@ -9,11 +9,11 @@ using Task = System.Threading.Tasks.Task;
 
 namespace AsyncArch.Services.Tasks;
 
-public class Consumer : BackgroundService
+public class KafkaConsumer : BackgroundService
 {
     private readonly IServiceScopeFactory _scopeFactory;
-    private readonly ILogger<Consumer> _logger;
-    public Consumer(IServiceScopeFactory scopeFactory, ILogger<Consumer> logger)
+    private readonly ILogger<KafkaConsumer> _logger;
+    public KafkaConsumer(IServiceScopeFactory scopeFactory, ILogger<KafkaConsumer> logger)
     {
         _scopeFactory = scopeFactory;
         _logger = logger;

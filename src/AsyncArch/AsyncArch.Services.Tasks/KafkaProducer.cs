@@ -1,6 +1,6 @@
 namespace AsyncArch.Services.Tasks;
 
-public class Producer
+public class KafkaProducer
 {
     public const string BusinessTopic = "tasks";
     public const string DataTopic = "tasks-stream";

@@ -21,7 +21,7 @@ builder.Services.AddDbContext<Context>(
 
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddHostedService<Consumer>();
+builder.Services.AddHostedService<KafkaConsumer>();
 
 var app = builder.Build();
 

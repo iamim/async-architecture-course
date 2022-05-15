@@ -23,7 +23,7 @@ public class TasksController : ControllerBase
         [FromQuery, Required] bool done,
         [FromQuery] Guid claim_user,
         [FromServices] Context ctx,
-        [FromServices] Producer producer,
+        [FromServices] KafkaProducer producer,
         [FromServices] ILogger<TasksController> logger
     )
     {
@@ -59,7 +59,7 @@ public class TasksController : ControllerBase
         await ctx.Tasks.AddAsync(db);
 
         await producer.Send(
-            Producer.BusinessTopic,
+            KafkaProducer.BusinessTopic,
             JsonSerializer.Serialize(msg, Json.Options)
         );
 
@@ -75,7 +75,7 @@ public class TasksController : ControllerBase
     public async Task<ActionResult> Shuffle(
         [FromQuery] Guid claim_user,
         [FromServices] Context ctx,
-        [FromServices] Producer producer,
+        [FromServices] KafkaProducer producer,
         [FromServices] ILogger<TasksController> logger
     )
     {
@@ -113,7 +113,7 @@ public class TasksController : ControllerBase
         }
 
         await producer.Send(
-            Producer.BusinessTopic,
+            KafkaProducer.BusinessTopic,
             reassignes.Select(_ => JsonSerializer.Serialize(_, Json.Options)).ToArray()
         );
 
@@ -152,7 +152,7 @@ public class TasksController : ControllerBase
         [FromQuery, Required] Guid task_uuid,
         [FromQuery] Guid claim_user,
         [FromServices] Context ctx,
-        [FromServices] Producer producer,
+        [FromServices] KafkaProducer producer,
         [FromServices] ILogger<TasksController> logger
     )
     {
@@ -178,7 +178,7 @@ public class TasksController : ControllerBase
         );
 
         await producer.Send(
-            Producer.BusinessTopic,
+            KafkaProducer.BusinessTopic,
             JsonSerializer.Serialize(e, Json.Options)
         );
 
