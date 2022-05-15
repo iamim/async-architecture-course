@@ -18,6 +18,7 @@ public class TasksController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult> CreateTask(
         [FromQuery, Required] Guid assignee,
+        [FromQuery, Required] string jira_id,
         [FromQuery, Required] string title,
         [FromQuery, Required] string description,
         [FromQuery, Required] bool done,
@@ -27,6 +28,9 @@ public class TasksController : ControllerBase
         [FromServices] ILogger<TasksController> logger
     )
     {
+        if (jira_id.Contains('[') || jira_id.Contains(']'))
+            return BadRequest("Jira id cannot contain [ or ]");
+        
         if (!await ctx.Accounts.AnyAsync(a => a.UserId == claim_user))
             return Unauthorized();
 
@@ -41,15 +45,16 @@ public class TasksController : ControllerBase
             IsDone = done
         };
 
-        var msg = new Task.Created_V1(
+        var msg = new Task.Created_V2(
             event_id: Guid.NewGuid().ToString(),
             event_version: 1,
             event_name: Task.Created_V1.Kind,
             event_time: DateTimeOffset.Now,
             producer: "TasksService",
-            data: new Task.Created_V1.Data(
+            data: new Task.Created_V2.Data(
                 task_uuid: Guid.NewGuid(),
                 assignee: assignee,
+                jira_id: jira_id,
                 title: title,
                 description: description,
                 done: done
