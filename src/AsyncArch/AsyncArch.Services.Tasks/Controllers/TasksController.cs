@@ -18,6 +18,7 @@ public class TasksController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult> CreateTask(
         [FromQuery, Required] Guid assignee,
+        [FromQuery, Required] string jira_id,
         [FromQuery, Required] string title,
         [FromQuery, Required] string description,
         [FromQuery, Required] bool done,
@@ -27,6 +28,9 @@ public class TasksController : ControllerBase
         [FromServices] ILogger<TasksController> logger
     )
     {
+        if (jira_id.Contains('[') || jira_id.Contains(']'))
+            return BadRequest("Jira id cannot contain [ or ]");
+        
         if (!await ctx.Accounts.AnyAsync(a => a.UserId == claim_user))
             return Unauthorized();
 
@@ -37,19 +41,21 @@ public class TasksController : ControllerBase
         var db = new Db.Models.Task
         {
             Assignee = assignee,
-            Description = description,
+            Title = description,
+            JiraId = jira_id,
             IsDone = done
         };
 
-        var msg = new Task.Created_V1(
+        var msg = new Task.Created_V2(
             event_id: Guid.NewGuid().ToString(),
             event_version: 1,
             event_name: Task.Created_V1.Kind,
             event_time: DateTimeOffset.Now,
             producer: "TasksService",
-            data: new Task.Created_V1.Data(
+            data: new Task.Created_V2.Data(
                 task_uuid: Guid.NewGuid(),
                 assignee: assignee,
+                jira_id: jira_id,
                 title: title,
                 description: description,
                 done: done
@@ -104,8 +110,7 @@ public class TasksController : ControllerBase
                 data: new Task.Reassigned_V1.Data(
                     task_uuid: undone.Uuid,
                     was_assignee_uuid: was,
-                    now_assignee_uuid: undone.Assignee,
-                    task_description: undone.Description
+                    now_assignee_uuid: undone.Assignee
                 )
             );
 
@@ -140,7 +145,7 @@ public class TasksController : ControllerBase
 
         return new(
             Guid.Empty,
-            mine.Select(_ => new PrivateBoardResponse.Task(_.Uuid, _.Description, _.IsDone)).ToList()
+            mine.Select(_ => new PrivateBoardResponse.Task(_.Uuid, _.Title, _.IsDone)).ToList()
         );
     }
 
@@ -171,9 +176,7 @@ public class TasksController : ControllerBase
             event_time: DateTimeOffset.Now,
             producer: "TasksService",
             data: new Task.Completed_V1.Data(
-                task_uuid: task.Uuid,
-                assignee_uuid: task.Assignee,
-                task_description: task.Description
+                task_uuid: task.Uuid
             )
         );
 
