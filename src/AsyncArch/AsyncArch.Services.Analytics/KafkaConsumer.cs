@@ -4,7 +4,7 @@ using AsyncArch.Schema.Events;
 using Confluent.Kafka;
 using Microsoft.EntityFrameworkCore;
 
-namespace AsyncArch.Services.Accounting;
+namespace AsyncArch.Services.Analytics;
 
 public class KafkaConsumer : BackgroundService
 {
@@ -24,7 +24,7 @@ public class KafkaConsumer : BackgroundService
         var config = new ConsumerConfig
         {
             BootstrapServers = "broker:29092",
-            GroupId = "accounting-consumer-group",
+            GroupId = "analytics-consumer-group",
             AutoOffsetReset = AutoOffsetReset.Earliest,
         };
 
@@ -151,129 +151,129 @@ public class KafkaConsumer : BackgroundService
                 context.Accounts.Remove(existing);
                 await context.SaveChangesAsync(CancellationToken.None);
             }
-            else if (eventName == Tasks.Created_V2.Kind && eventVersion == 2) 
-            { 
-                var e = 
-                    JsonSerializer.Deserialize<Tasks.Created_V2>(consumeResult.Message.Value, Json.Options)
-                    ?? throw new Exception($"failed to deserialize {nameof(Tasks.Created_V2)}");
-                
-                using var scope = _scopeFactory.CreateScope();
-                await using var context = scope.ServiceProvider.GetRequiredService<Db.Context>();
-
-                var rnd = new Random();
-                var pricing = new Db.Models.Task
-                {
-                    TaskGuid = e.data.task_uuid,
-                    
-                    JiraId = e.data.jira_id,
-                    Description = e.data.description,
-                    
-                    AssignmentDeduction = (uint) rnd.Next(10, 20),
-                    CompletionBonus = (uint) rnd.Next(20, 40)
-                };
-
-                var balanceTransaction = new Db.Models.AccountBalanceTransaction
-                {
-                    Time = DateTimeOffset.Now,
-                    AccountGuid = e.data.assignee,
-                    RelatedToTaskGuid = e.data.task_uuid,
-                    Explanation = Db.Models.AccountBalanceTransaction.Reason.Assigned,
-                    BalanceChange = -(int) pricing.AssignmentDeduction
-                };
-
-                context.Tasks.Add(pricing);
-                context.AccountBalanceTransactions.Add(balanceTransaction);
-
-                await context.SaveChangesAsync(CancellationToken.None);
-            }
-            else if (eventName == Tasks.Reassigned_V1.Kind && eventVersion == 1) 
-            { 
-                var e = 
-                    JsonSerializer.Deserialize<Tasks.Reassigned_V1>(consumeResult.Message.Value, Json.Options)
-                    ?? throw new Exception($"failed to deserialize {nameof(Tasks.Reassigned_V1)}");
-                
-                using var scope = _scopeFactory.CreateScope();
-                await using var context = scope.ServiceProvider.GetRequiredService<Db.Context>();
-
-                Db.Models.Task pricing;
-                if (await context.Tasks
-                        .FirstOrDefaultAsync(
-                            _ => _.TaskGuid == e.data.task_uuid,
-                            cancellationToken: stoppingToken
-                        ) is { } existing)
-                {
-                    pricing = existing;
-                }
-                else
-                {
-                    var rnd = new Random();
-                    pricing = new Db.Models.Task
-                    {
-                        TaskGuid = e.data.task_uuid,
-                        AssignmentDeduction = (uint) rnd.Next(10, 20),
-                        CompletionBonus = (uint) rnd.Next(20, 40)
-                    };
-                    
-                    context.Tasks.Add(pricing);
-                }
-
-                var balanceTransaction = new Db.Models.AccountBalanceTransaction
-                {
-                    Time = DateTimeOffset.Now, 
-                    AccountGuid = e.data.now_assignee_uuid,
-                    RelatedToTaskGuid = e.data.task_uuid,
-                    Explanation = Db.Models.AccountBalanceTransaction.Reason.Assigned,
-                    BalanceChange = -(int) pricing.AssignmentDeduction
-                };
-
-                context.AccountBalanceTransactions.Add(balanceTransaction);
-
-                await context.SaveChangesAsync(CancellationToken.None);
-            }
-            else if (eventName == Tasks.Completed_V1.Kind && eventVersion == 1) 
-            { 
-                var e = 
-                    JsonSerializer.Deserialize<Tasks.Completed_V1>(consumeResult.Message.Value, Json.Options)
-                    ?? throw new Exception($"failed to deserialize {nameof(Tasks.Completed_V1)}");
-                
-                using var scope = _scopeFactory.CreateScope();
-                await using var context = scope.ServiceProvider.GetRequiredService<Db.Context>();
-
-                Db.Models.Task pricing;
-                if (await context.Tasks
-                        .FirstOrDefaultAsync(
-                            _ => _.TaskGuid == e.data.task_uuid,
-                            cancellationToken: stoppingToken
-                        ) is { } existing)
-                {
-                    pricing = existing;
-                }
-                else
-                {
-                    var rnd = new Random();
-                    pricing = new Db.Models.Task
-                    {
-                        TaskGuid = e.data.task_uuid,
-                        AssignmentDeduction = (uint) rnd.Next(10, 20),
-                        CompletionBonus = (uint) rnd.Next(20, 40)
-                    };
-                    
-                    context.Tasks.Add(pricing);
-                }
-
-                var balanceTransaction = new Db.Models.AccountBalanceTransaction
-                {
-                    Time = DateTimeOffset.Now,
-                    AccountGuid = e.data.assignee_uuid,
-                    RelatedToTaskGuid = e.data.task_uuid,
-                    Explanation = Db.Models.AccountBalanceTransaction.Reason.Assigned,
-                    BalanceChange = -(int) pricing.AssignmentDeduction
-                };
-
-                context.AccountBalanceTransactions.Add(balanceTransaction);
-
-                await context.SaveChangesAsync(CancellationToken.None);
-            }
+            // else if (eventName == Tasks.Created_V2.Kind && eventVersion == 2) 
+            // { 
+            //     var e = 
+            //         JsonSerializer.Deserialize<Tasks.Created_V2>(consumeResult.Message.Value, Json.Options)
+            //         ?? throw new Exception($"failed to deserialize {nameof(Tasks.Created_V2)}");
+            //     
+            //     using var scope = _scopeFactory.CreateScope();
+            //     await using var context = scope.ServiceProvider.GetRequiredService<Db.Context>();
+            //
+            //     var rnd = new Random();
+            //     var pricing = new Db.Models.Task
+            //     {
+            //         TaskGuid = e.data.task_uuid,
+            //         
+            //         JiraId = e.data.jira_id,
+            //         Description = e.data.description,
+            //         
+            //         AssignmentDeduction = (uint) rnd.Next(10, 20),
+            //         CompletionBonus = (uint) rnd.Next(20, 40)
+            //     };
+            //
+            //     var balanceTransaction = new Db.Models.AccountBalanceTransaction
+            //     {
+            //         Time = DateTimeOffset.Now,
+            //         AccountGuid = e.data.assignee,
+            //         RelatedToTaskGuid = e.data.task_uuid,
+            //         Explanation = Db.Models.AccountBalanceTransaction.Reason.Assigned,
+            //         BalanceChange = -(int) pricing.AssignmentDeduction
+            //     };
+            //
+            //     context.Tasks.Add(pricing);
+            //     context.AccountBalanceTransactions.Add(balanceTransaction);
+            //
+            //     await context.SaveChangesAsync(CancellationToken.None);
+            // }
+            // else if (eventName == Tasks.Reassigned_V1.Kind && eventVersion == 1) 
+            // { 
+            //     var e = 
+            //         JsonSerializer.Deserialize<Tasks.Reassigned_V1>(consumeResult.Message.Value, Json.Options)
+            //         ?? throw new Exception($"failed to deserialize {nameof(Tasks.Reassigned_V1)}");
+            //     
+            //     using var scope = _scopeFactory.CreateScope();
+            //     await using var context = scope.ServiceProvider.GetRequiredService<Db.Context>();
+            //
+            //     Db.Models.Task pricing;
+            //     if (await context.Tasks
+            //             .FirstOrDefaultAsync(
+            //                 _ => _.TaskGuid == e.data.task_uuid,
+            //                 cancellationToken: stoppingToken
+            //             ) is { } existing)
+            //     {
+            //         pricing = existing;
+            //     }
+            //     else
+            //     {
+            //         var rnd = new Random();
+            //         pricing = new Db.Models.Task
+            //         {
+            //             TaskGuid = e.data.task_uuid,
+            //             AssignmentDeduction = (uint) rnd.Next(10, 20),
+            //             CompletionBonus = (uint) rnd.Next(20, 40)
+            //         };
+            //         
+            //         context.Tasks.Add(pricing);
+            //     }
+            //
+            //     var balanceTransaction = new Db.Models.AccountBalanceTransaction
+            //     {
+            //         Time = DateTimeOffset.Now, 
+            //         AccountGuid = e.data.now_assignee_uuid,
+            //         RelatedToTaskGuid = e.data.task_uuid,
+            //         Explanation = Db.Models.AccountBalanceTransaction.Reason.Assigned,
+            //         BalanceChange = -(int) pricing.AssignmentDeduction
+            //     };
+            //
+            //     context.AccountBalanceTransactions.Add(balanceTransaction);
+            //
+            //     await context.SaveChangesAsync(CancellationToken.None);
+            // }
+            // else if (eventName == Tasks.Completed_V1.Kind && eventVersion == 1) 
+            // { 
+            //     var e = 
+            //         JsonSerializer.Deserialize<Tasks.Completed_V1>(consumeResult.Message.Value, Json.Options)
+            //         ?? throw new Exception($"failed to deserialize {nameof(Tasks.Completed_V1)}");
+            //     
+            //     using var scope = _scopeFactory.CreateScope();
+            //     await using var context = scope.ServiceProvider.GetRequiredService<Db.Context>();
+            //
+            //     Db.Models.Task pricing;
+            //     if (await context.Tasks
+            //             .FirstOrDefaultAsync(
+            //                 _ => _.TaskGuid == e.data.task_uuid,
+            //                 cancellationToken: stoppingToken
+            //             ) is { } existing)
+            //     {
+            //         pricing = existing;
+            //     }
+            //     else
+            //     {
+            //         var rnd = new Random();
+            //         pricing = new Db.Models.Task
+            //         {
+            //             TaskGuid = e.data.task_uuid,
+            //             AssignmentDeduction = (uint) rnd.Next(10, 20),
+            //             CompletionBonus = (uint) rnd.Next(20, 40)
+            //         };
+            //         
+            //         context.Tasks.Add(pricing);
+            //     }
+            //
+            //     var balanceTransaction = new Db.Models.AccountBalanceTransaction
+            //     {
+            //         Time = DateTimeOffset.Now,
+            //         AccountGuid = e.data.assignee_uuid,
+            //         RelatedToTaskGuid = e.data.task_uuid,
+            //         Explanation = Db.Models.AccountBalanceTransaction.Reason.Assigned,
+            //         BalanceChange = -(int) pricing.AssignmentDeduction
+            //     };
+            //
+            //     context.AccountBalanceTransactions.Add(balanceTransaction);
+            //
+            //     await context.SaveChangesAsync(CancellationToken.None);
+            // }
         }
 
         consumer.Close();

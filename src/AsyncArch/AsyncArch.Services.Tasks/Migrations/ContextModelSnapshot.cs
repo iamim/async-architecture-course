@@ -31,17 +31,17 @@ namespace AsyncArch.Services.Tasks.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<Guid>("AccountGuid")
+                        .HasColumnType("uuid")
+                        .HasColumnName("account_guid");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
                     b.Property<string>("Role")
                         .HasColumnType("text")
                         .HasColumnName("role");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("user_id");
-
-                    b.Property<string>("UserName")
-                        .HasColumnType("text")
-                        .HasColumnName("user_name");
 
                     b.HasKey("Id")
                         .HasName("pk_accounts");

@@ -1,4 +1,4 @@
-namespace AsyncArch.Services.Tasks.Db.Models;
+namespace AsyncArch.Services.Analytics.Db.Models;
 
 public class Account
 {

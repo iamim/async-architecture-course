@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace AsyncArch.Schema.Events;
 
-public static class Task
+public static class Tasks
 {
     public class Completed_V1
     {
@@ -37,11 +37,13 @@ public static class Task
         public class Data
         {
             public Guid task_uuid { get; }
+            public Guid assignee_uuid { get; }
 
             [JsonConstructor]
-            public Data(Guid task_uuid)
+            public Data(Guid task_uuid, Guid assignee_uuid)
             {
                 this.task_uuid = task_uuid;
+                this.assignee_uuid = assignee_uuid;
             }
         }
     }

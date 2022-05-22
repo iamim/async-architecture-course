@@ -4,7 +4,6 @@ using AsyncArch.Schema;
 using AsyncArch.Services.Tasks.Db;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Task = AsyncArch.Schema.Events.Task;
 
 namespace AsyncArch.Services.Tasks.Controllers;
 
@@ -31,10 +30,10 @@ public class TasksController : ControllerBase
         if (jira_id.Contains('[') || jira_id.Contains(']'))
             return BadRequest("Jira id cannot contain [ or ]");
         
-        if (!await ctx.Accounts.AnyAsync(a => a.UserId == claim_user))
+        if (!await ctx.Accounts.AnyAsync(a => a.AccountGuid == claim_user))
             return Unauthorized();
 
-        var to = await ctx.Accounts.FirstOrDefaultAsync(_ => _.UserId == assignee);
+        var to = await ctx.Accounts.FirstOrDefaultAsync(_ => _.AccountGuid == assignee);
         if (to == null)
             return BadRequest("Assignee not found");
 
@@ -46,13 +45,13 @@ public class TasksController : ControllerBase
             IsDone = done
         };
 
-        var msg = new Task.Created_V2(
+        var msg = new Schema.Events.Tasks.Created_V2(
             event_id: Guid.NewGuid().ToString(),
             event_version: 1,
-            event_name: Task.Created_V1.Kind,
+            event_name: Schema.Events.Tasks.Created_V2.Kind,
             event_time: DateTimeOffset.Now,
             producer: "TasksService",
-            data: new Task.Created_V2.Data(
+            data: new Schema.Events.Tasks.Created_V2.Data(
                 task_uuid: Guid.NewGuid(),
                 assignee: assignee,
                 jira_id: jira_id,
@@ -85,7 +84,7 @@ public class TasksController : ControllerBase
         [FromServices] ILogger<TasksController> logger
     )
     {
-        var user = await ctx.Accounts.FirstOrDefaultAsync(_ => _.UserId == claim_user);
+        var user = await ctx.Accounts.FirstOrDefaultAsync(_ => _.AccountGuid == claim_user);
         if (user is null || user.Role != "admin")
             return Unauthorized();
 
@@ -93,21 +92,21 @@ public class TasksController : ControllerBase
         var workers = await ctx.Accounts.Where(_ => _.Role == "worker").ToListAsync();
 
         var rnd = new Random();
-        var reassignes = new List<Task.Reassigned_V1>();
+        var reassignes = new List<Schema.Events.Tasks.Reassigned_V1>();
         foreach (var undone in undones)
         {
             var pick = workers[rnd.Next(workers.Count)];
 
             var was = undone.Assignee;
-            undone.Assignee = pick.UserId;
+            undone.Assignee = pick.AccountGuid;
 
-            var e = new Task.Reassigned_V1(
+            var e = new Schema.Events.Tasks.Reassigned_V1(
                 event_id: Guid.NewGuid().ToString(),
                 event_version: 1,
-                event_name: Task.Reassigned_V1.Kind,
+                event_name: Schema.Events.Tasks.Reassigned_V1.Kind,
                 event_time: DateTimeOffset.Now,
                 producer: "TasksService",
-                data: new Task.Reassigned_V1.Data(
+                data: new Schema.Events.Tasks.Reassigned_V1.Data(
                     task_uuid: undone.Uuid,
                     was_assignee_uuid: was,
                     now_assignee_uuid: undone.Assignee
@@ -169,14 +168,15 @@ public class TasksController : ControllerBase
 
         task.IsDone = true;
 
-        var e = new Task.Completed_V1(
+        var e = new Schema.Events.Tasks.Completed_V1(
             event_id: Guid.NewGuid().ToString(),
             event_version: 1,
-            event_name: Task.Completed_V1.Kind,
+            event_name: Schema.Events.Tasks.Completed_V1.Kind,
             event_time: DateTimeOffset.Now,
             producer: "TasksService",
-            data: new Task.Completed_V1.Data(
-                task_uuid: task.Uuid
+            data: new Schema.Events.Tasks.Completed_V1.Data(
+                task_uuid: task.Uuid,
+                assignee_uuid: task.Assignee
             )
         );
 

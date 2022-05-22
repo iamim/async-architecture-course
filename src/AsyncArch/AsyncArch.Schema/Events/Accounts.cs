@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace AsyncArch.Schema.Events;
 
-public static class Account
+public static class Accounts
 {
     public class Created_V1
     {

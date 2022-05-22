@@ -3,7 +3,7 @@ using AsyncArch.Schema;
 using AsyncArch.Services.Tasks.Db;
 using Confluent.Kafka;
 using Microsoft.EntityFrameworkCore;
-using static AsyncArch.Schema.Events.Account;
+using static AsyncArch.Schema.Events.Accounts;
 using Account = AsyncArch.Services.Tasks.Db.Models.Account;
 using Task = System.Threading.Tasks.Task;
 
@@ -70,7 +70,7 @@ public class KafkaConsumer : BackgroundService
 
                 var existing =
                     await context.Accounts.FirstOrDefaultAsync(
-                        _ => _.UserId == e.data.public_id,
+                        _ => _.AccountGuid == e.data.public_id,
                         cancellationToken: stoppingToken
                     );
                 
@@ -91,7 +91,7 @@ public class KafkaConsumer : BackgroundService
 
                 var existing =
                     await context.Accounts.FirstOrDefaultAsync(
-                        _ => _.UserId == e.data.public_id,
+                        _ => _.AccountGuid == e.data.public_id,
                         cancellationToken: stoppingToken
                     );
 
@@ -103,8 +103,8 @@ public class KafkaConsumer : BackgroundService
 
                 var account = new Account
                 {
-                    UserId = e.data.public_id,
-                    UserName = e.data.full_name,
+                    AccountGuid = e.data.public_id,
+                    Name = e.data.full_name,
                     Role = e.data.position
                 };
                 
@@ -122,14 +122,14 @@ public class KafkaConsumer : BackgroundService
 
                 var existing =
                     await context.Accounts.FirstOrDefaultAsync(
-                        _ => _.UserId == e.data.public_id,
+                        _ => _.AccountGuid == e.data.public_id,
                         cancellationToken: stoppingToken
                     );
                 
                 if (existing == null)
                     throw new Exception($"account {e.data.public_id} not found to update");
 
-                existing.UserName = e.data.full_name;
+                existing.Name = e.data.full_name;
                 existing.Role = e.data.position;
                 await context.SaveChangesAsync(CancellationToken.None);
             }
@@ -144,7 +144,7 @@ public class KafkaConsumer : BackgroundService
 
                 var existing =
                     await context.Accounts.FirstOrDefaultAsync(
-                        _ => _.UserId == e.data.public_id,
+                        _ => _.AccountGuid == e.data.public_id,
                         cancellationToken: stoppingToken
                     );
                 
